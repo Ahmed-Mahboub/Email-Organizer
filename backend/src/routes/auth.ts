@@ -10,7 +10,6 @@ const oauth2Client = new OAuth2Client(
   process.env.GOOGLE_REDIRECT_URI
 );
 
-// Generate the authorization URL
 router.get("/google", (req, res) => {
   const scopes = [
     "https://www.googleapis.com/auth/gmail.readonly",
@@ -20,13 +19,12 @@ router.get("/google", (req, res) => {
   const authUrl = oauth2Client.generateAuthUrl({
     access_type: "offline",
     scope: scopes,
-    prompt: "consent", // Force to get refresh token
+    prompt: "consent",
   });
 
   res.json({ authUrl });
 });
 
-// Handle the OAuth callback
 router.get("/google/callback", async (req, res) => {
   const { code } = req.query;
 
@@ -37,7 +35,6 @@ router.get("/google/callback", async (req, res) => {
   try {
     const { tokens } = await oauth2Client.getToken(code as string);
 
-    // Log the refresh token (in production, you should store this securely)
     logger.info("Refresh token obtained:", tokens.refresh_token);
 
     res.json({

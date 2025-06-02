@@ -21,7 +21,7 @@ router.post("/", (req, res) => {
   ) {
     labels.push("urgent");
     taskType = "task";
-    confidence = 0.95; // High confidence for urgent tasks
+    confidence = 0.95;
   }
 
   if (from?.toLowerCase().includes("boss")) {

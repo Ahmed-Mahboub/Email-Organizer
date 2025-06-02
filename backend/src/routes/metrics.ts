@@ -38,7 +38,6 @@ router.get("/", async (req, res) => {
     doneTaskCount.set(done);
     archivedTaskCount.set(archived);
 
-    // Count by label (for all labels in the DB)
     const allTasks = await repo.find();
     const labelMap: Record<string, number> = {};
     allTasks.forEach((task) => {

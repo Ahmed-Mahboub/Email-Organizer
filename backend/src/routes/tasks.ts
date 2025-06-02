@@ -7,7 +7,6 @@ import { broadcastUpdate } from "../index";
 
 const router = express.Router();
 
-// PATCH /tasks/bulk - update multiple tasks
 router.patch("/bulk", async (req, res) => {
   try {
     const { ids, isDone, isArchived } = req.body;
@@ -17,7 +16,6 @@ router.patch("/bulk", async (req, res) => {
     const taskRepository = AppDataSource.getRepository(Task);
     await taskRepository.update(ids, { isDone, isArchived });
 
-    // Broadcast update
     const tasks = await taskRepository.findBy({ id: In(ids) });
     broadcastUpdate({ type: "bulkUpdate", tasks });
 
@@ -28,7 +26,6 @@ router.patch("/bulk", async (req, res) => {
   }
 });
 
-// PATCH /tasks/:id - update a single task
 router.patch("/:id", async (req, res) => {
   try {
     const { id } = req.params;
@@ -47,7 +44,6 @@ router.patch("/:id", async (req, res) => {
 
     await taskRepository.save(task);
 
-    // Broadcast update
     broadcastUpdate({ type: "taskUpdate", task });
 
     res.json(task);
@@ -57,7 +53,6 @@ router.patch("/:id", async (req, res) => {
   }
 });
 
-// Get latest 50 tasks with optional label filter
 router.get("/", async (req, res) => {
   try {
     const {
@@ -70,12 +65,10 @@ router.get("/", async (req, res) => {
     } = req.query;
     const taskRepository = AppDataSource.getRepository(Task);
 
-    // Create base query
     let query = taskRepository
       .createQueryBuilder("task")
       .orderBy("task.receivedAt", "DESC");
 
-    // Add filters
     if (labels) {
       const labelArray = Array.isArray(labels) ? labels : [labels];
       query = query.andWhere(

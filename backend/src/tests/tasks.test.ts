@@ -132,36 +132,6 @@ describe("/tasks routes", () => {
     expect(res.body.tasks.length).toBe(2);
   });
 
-  // it("GET /tasks - with search", async () => {
-  //   const repo = AppDataSource.getRepository(Task);
-  //   await repo.save([
-  //     repo.create({
-  //       subject: "Important update",
-  //       body: "Please review",
-  //       from: "boss@example.com",
-  //       labels: ["priority"],
-  //       confidence: 0.99,
-  //       messageId: "s1",
-  //       receivedAt: new Date(),
-  //     }),
-  //     repo.create({
-  //       subject: "Other",
-  //       body: "Nothing to see here",
-  //       from: "bot@example.com",
-  //       labels: ["misc"],
-  //       confidence: 0.4,
-  //       messageId: "s2",
-  //       receivedAt: new Date(),
-  //     }),
-  //   ]);
-
-  //   const res = await request(app).get("/tasks?search=important");
-
-  //   expect(res.status).toBe(200);
-  //   expect(res.body.length).toBe(1); // Only the "Important update" task should be returned
-  //   expect(res.body[0].subject).toMatch(/important/i); // Case-insensitive search for "important"
-  // });
-
   it("PATCH /tasks/:id - should update task", async () => {
     const repo = AppDataSource.getRepository(Task);
     const task = await repo.save(
