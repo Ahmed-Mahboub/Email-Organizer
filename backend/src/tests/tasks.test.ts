@@ -1,6 +1,10 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+jest.mock("../index", () => ({
+  broadcastUpdate: jest.fn(),
+}));
+
 jest.mock("../database", () => {
   const { DataSource } = require("typeorm");
   const { Task } = require("../entities/Task");
@@ -64,8 +68,8 @@ describe("/tasks routes", () => {
 
     const res = await request(app).get("/tasks");
     expect(res.status).toBe(200);
-    expect(res.body.length).toBe(50);
-    expect(res.body[0].subject).toBe("Task 59");
+    expect(res.body.tasks.length).toBe(50);
+    expect(res.body.tasks[0].subject).toBe("Task 59");
   });
 
   it("GET /tasks - with label filter", async () => {
@@ -89,12 +93,11 @@ describe("/tasks routes", () => {
       }),
     ]);
 
-    // Send a GET request with labels as a comma-separated list
     const res = await request(app).get("/tasks?labels=work,important");
     expect(res.status).toBe(200);
-    expect(res.body.length).toBe(1); // Only the "Work" task should be returned
-    expect(res.body[0].labels).toContain("work");
-    expect(res.body[0].labels).toContain("important");
+    expect(res.body.tasks.length).toBe(1);
+    expect(res.body.tasks[0].labels).toContain("work");
+    expect(res.body.tasks[0].labels).toContain("important");
   });
 
   it("GET /tasks - with date range", async () => {
@@ -126,7 +129,7 @@ describe("/tasks routes", () => {
     );
 
     expect(res.status).toBe(200);
-    expect(res.body.length).toBe(2); // Check if both tasks are returned
+    expect(res.body.tasks.length).toBe(2);
   });
 
   // it("GET /tasks - with search", async () => {
