@@ -135,7 +135,13 @@ Content-Type: application/json
 {"authUrl":"https://accounts.google.com/o/oauth2/v2/auth?some_thing}
 ```
 
-then go to the `authUrl` and login this will lead to response with refersh token use it in the .env file
+then go to the `authUrl` and login this will lead to response with refresh token use it in the .env file
+
+```
+{
+  "message":"Authentication successful","refresh_token":"example_token"
+}
+```
 
 - The backend will store the credentials and use them to watch your inbox for new messages.
 
