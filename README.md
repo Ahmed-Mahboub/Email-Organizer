@@ -1,4 +1,25 @@
-# Email Organizer
+<div align="center">
+<a href="https://github.com/Ahmed-Mahboub/Email-Organizer" rel="noopener">
+  
+  <img width="700" alt="Logo With Title (7)" src="./emai_orgainzer_photo.png">
+
+</div>
+
+<h2 align="center">Email Organizer</h2>
+
+<div align="center">
+
+[![GitHub contributors](https://img.shields.io/github/contributors/Ahmed-Mahboub/Email-Organizer)](https://github.com/Ahmed-Mahboub/Email-Organizer/contributors)
+[![GitHub issues](https://img.shields.io/github/issues/Ahmed-Mahboub/Email-Organizer)](https://github.com/Ahmed-Mahboub/Email-Organizer/issues)
+[![GitHub forks](https://img.shields.io/github/forks/Ahmed-Mahboub/Email-Organizer)](https://github.com/Ahmed-Mahboub/Email-Organizer/network)
+[![GitHub stars](https://img.shields.io/github/stars/Ahmed-Mahboub/Email-Organizer)](https://github.com/Ahmed-Mahboub/Email-Organizer/stargazers)
+[![GitHub license](https://img.shields.io/github/license/Ahmed-Mahboub/Email-Organizer)](https://github.com/Ahmed-Mahboub/Email-Organizer/blob/master/LICENSE)
+<img src="https://img.shields.io/github/languages/count/Ahmed-Mahboub/Email-Organizer" />
+<img src="https://img.shields.io/github/languages/top/Ahmed-Mahboub/Email-Organizer" />
+<img src="https://img.shields.io/github/languages/code-size/Ahmed-Mahboub/Email-Organizer" />
+<img src="https://img.shields.io/github/issues-pr-raw/Ahmed-Mahboub/Email-Organizer" />
+
+</div>
 
 A full-stack TypeScript application for triaging and organizing emails, featuring real-time updates, advanced filtering, and robust backend logic.  
 **Runs with a single `docker-compose up`.**
@@ -9,28 +30,27 @@ A full-stack TypeScript application for triaging and organizing emails, featurin
 
 ## Table of Contents
 
-- [Email Organizer](#email-organizer)
-  - [Table of Contents](#table-of-contents)
-  - [How to Run](#how-to-run)
-  - [Alternative Manual Run (if Docker Compose does not work)](#alternative-manual-run-if-docker-compose-does-not-work)
-  - [First Run Screenshot](#first-run-screenshot)
-  - [Environment Setup](#environment-setup)
-    - [Backend (`backend/.env`)](#backend-backendenv)
-    - [Frontend (`frontend/.env.local`)](#frontend-frontendenvlocal)
-  - [Authentication (Email OAuth)](#authentication-email-oauth)
-  - [Docker \& Docker Compose](#docker--docker-compose)
-  - [API Endpoints \& Features](#api-endpoints--features)
-    - [Task List \& Filtering](#task-list--filtering)
-      - [UI Features](#ui-features)
-    - [Bulk Operations](#bulk-operations)
-    - [Task Drawer \& Re-label](#task-drawer--re-label)
-    - [WebSocket Real-Time Updates](#websocket-real-time-updates)
-    - [Exponential Backoff \& Batch Mode](#exponential-backoff--batch-mode)
-    - [Metrics](#metrics)
-  - [Testing](#testing)
-  - [Screenshots](#screenshots)
-  - [Bonus Features](#bonus-features)
-  - [Supported Features \& Endpoints (Summary Table)](#supported-features--endpoints-summary-table)
+- [Table of Contents](#table-of-contents)
+- [How to Run](#how-to-run)
+- [Alternative Manual Run (if Docker Compose does not work)](#alternative-manual-run-if-docker-compose-does-not-work)
+- [First Run Screenshot](#first-run-screenshot)
+- [](#)
+- [Environment Setup](#environment-setup)
+  - [Backend (`backend/.env`)](#backend-backendenv)
+  - [Frontend (`frontend/.env.local`)](#frontend-frontendenvlocal)
+- [Authentication (Email OAuth)](#authentication-email-oauth)
+- [Docker \& Docker Compose](#docker--docker-compose)
+- [API Endpoints \& Features](#api-endpoints--features)
+  - [Task List \& Filtering](#task-list--filtering)
+    - [UI Features](#ui-features)
+  - [Bulk Operations](#bulk-operations)
+  - [Task Drawer \& Re-label](#task-drawer--re-label)
+  - [WebSocket Real-Time Updates](#websocket-real-time-updates)
+  - [Exponential Backoff \& Batch Mode](#exponential-backoff--batch-mode)
+  - [Metrics](#metrics)
+- [Testing](#testing)
+- [Bonus Features](#bonus-features)
+- [Supported Features \& Endpoints (Summary Table)](#supported-features--endpoints-summary-table)
 
 ---
 
@@ -82,8 +102,7 @@ A full-stack TypeScript application for triaging and organizing emails, featurin
 
 ## First Run Screenshot
 
-![Image](https://github.com/user-attachments/assets/d7423982-4a1d-4bbf-99dc-89b6f2fa6e8e)
----
+## ![Image](https://github.com/user-attachments/assets/d7423982-4a1d-4bbf-99dc-89b6f2fa6e8e)
 
 ## Environment Setup
 
@@ -246,13 +265,13 @@ services:
 **Screenshot:**
 
 - Search bar
-![Image](https://github.com/user-attachments/assets/fd83e9f3-d527-46c4-94ba-e9e5354b0456)
+  ![Image](https://github.com/user-attachments/assets/fd83e9f3-d527-46c4-94ba-e9e5354b0456)
 
 - Multi-select label filter (chip style)
-![Image](https://github.com/user-attachments/assets/c450ca84-eb6c-4bc6-a396-3f53625d8699)
+  ![Image](https://github.com/user-attachments/assets/c450ca84-eb6c-4bc6-a396-3f53625d8699)
 
 - Date range selector
-![Image](https://github.com/user-attachments/assets/6a12019d-fa12-4e24-9478-2f1aad787eb1)
+  ![Image](https://github.com/user-attachments/assets/6a12019d-fa12-4e24-9478-2f1aad787eb1)
 
 ### Bulk Operations
 
