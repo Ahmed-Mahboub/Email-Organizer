@@ -82,8 +82,7 @@ A full-stack TypeScript application for triaging and organizing emails, featurin
 
 ## First Run Screenshot
 
-![First Run](screenshots/first-run.png)
-
+![Image](https://github.com/user-attachments/assets/d7423982-4a1d-4bbf-99dc-89b6f2fa6e8e)
 ---
 
 ## Environment Setup
