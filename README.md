@@ -3,23 +3,34 @@
 A full-stack TypeScript application for triaging and organizing emails, featuring real-time updates, advanced filtering, and robust backend logic.  
 **Runs with a single `docker-compose up`.**
 
+**Note:** This project uses the Gmail API (not IMAP) for email ingestion and watching. You do not need to configure IMAP.
+
 ---
 
 ## Table of Contents
 
-- [How to Run](#how-to-run)
-- [Environment Setup](#environment-setup)
-- [Authentication (Email OAuth)](#authentication-email-oauth)
-- [Docker & Docker Compose](#docker--docker-compose)
-- [API Endpoints & Features](#api-endpoints--features)
-  - [Task List & Filtering](#task-list--filtering)
-  - [Bulk Operations](#bulk-operations)
-  - [Task Drawer & Re-label](#task-drawer--re-label)
-  - [WebSocket Real-Time Updates](#websocket-real-time-updates)
-  - [Metrics](#metrics)
-- [Testing](#testing)
-- [Screenshots](#screenshots)
-- [Bonus Features](#bonus-features)
+- [Email Organizer](#email-organizer)
+  - [Table of Contents](#table-of-contents)
+  - [How to Run](#how-to-run)
+  - [Alternative Manual Run (if Docker Compose does not work)](#alternative-manual-run-if-docker-compose-does-not-work)
+  - [First Run Screenshot](#first-run-screenshot)
+  - [Environment Setup](#environment-setup)
+    - [Backend (`backend/.env`)](#backend-backendenv)
+    - [Frontend (`frontend/.env.local`)](#frontend-frontendenvlocal)
+  - [Authentication (Email OAuth)](#authentication-email-oauth)
+  - [Docker \& Docker Compose](#docker--docker-compose)
+  - [API Endpoints \& Features](#api-endpoints--features)
+    - [Task List \& Filtering](#task-list--filtering)
+      - [UI Features](#ui-features)
+    - [Bulk Operations](#bulk-operations)
+    - [Task Drawer \& Re-label](#task-drawer--re-label)
+    - [WebSocket Real-Time Updates](#websocket-real-time-updates)
+    - [Exponential Backoff \& Batch Mode](#exponential-backoff--batch-mode)
+    - [Metrics](#metrics)
+  - [Testing](#testing)
+  - [Screenshots](#screenshots)
+  - [Bonus Features](#bonus-features)
+  - [Supported Features \& Endpoints (Summary Table)](#supported-features--endpoints-summary-table)
 
 ---
 
@@ -43,18 +54,64 @@ A full-stack TypeScript application for triaging and organizing emails, featurin
 
 ---
 
+## Alternative Manual Run (if Docker Compose does not work)
+
+1. **Create the database manually in Postgres:**
+
+   - Create a database named `email_organizer` using your preferred Postgres tool or:
+     ```sql
+     CREATE DATABASE email_organizer;
+     ```
+
+2. **Run the backend:**
+
+   ```bash
+   cd backend
+   npm install
+   npm run dev
+   ```
+
+3. **Run the frontend:**
+   ```bash
+   cd frontend
+   npm install
+   npm run dev
+   ```
+
+---
+
+## First Run Screenshot
+
+![First Run](screenshots/first-run.png)
+
+---
+
 ## Environment Setup
 
 ### Backend (`backend/.env`)
 
 ```
+# Database Configuration
 DATABASE_TYPE=postgres
 DATABASE_HOST=db
 DATABASE_PORT=5432
 DATABASE_USER=postgres
 DATABASE_PASSWORD=109110
 DATABASE_NAME=email_organizer
+
+# Server Configuration
 PORT=3001
+NODE_ENV=development
+
+# Gmail API Configuration
+GOOGLE_CLIENT_ID=579954597168-234tm11th6f3tjleldhv7nn9ckh9tnpj.apps.googleusercontent.com
+GOOGLE_CLIENT_SECRET="example_secret"
+GOOGLE_REDIRECT_URI=http://localhost:3001/auth/google/callback
+GOOGLE_PROJECT_ID=emailorganizer-461511
+GOOGLE_TOPIC_NAME=email_notifications
+GOOGLE_REFRESH_TOKEN="example_token"
+# Classifier Configuration
+CLASSIFIER_ENDPOINT=http://localhost:3002/classify
 ```
 
 ### Frontend (`frontend/.env.local`)
@@ -72,16 +129,13 @@ To connect your email account, use the `/auth` endpoint:
 **Example:**
 
 ```http
-POST /auth
+POST /auth/google
 Content-Type: application/json
 
-{
-  "email": "your-email@gmail.com",
-  "clientId": "...",
-  "clientSecret": "...",
-  "refreshToken": "..."
-}
+{"authUrl":"https://accounts.google.com/o/oauth2/v2/auth?some_thing}
 ```
+
+then go to the `authUrl` and login this will lead to response with refersh token use it in the .env file
 
 - The backend will store the credentials and use them to watch your inbox for new messages.
 
@@ -98,39 +152,61 @@ Content-Type: application/json
 **Sample `docker-compose.yml` snippet:**
 
 ```yaml
+version: "3.8"
+
 services:
   backend:
-    build: ./backend
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "3001:3001"
     environment:
+      - NODE_ENV=production
       - DATABASE_TYPE=postgres
       - DATABASE_HOST=db
       - DATABASE_PORT=5432
       - DATABASE_USER=postgres
-      - DATABASE_PASSWORD=109110
+      - DATABASE_PASSWORD=password
       - DATABASE_NAME=email_organizer
       - PORT=3001
+      - GOOGLE_CLIENT_ID=dummy-client-id.apps.googleusercontent.com
+      - GOOGLE_CLIENT_SECRET=dummy-client-secret
+      - GOOGLE_REDIRECT_URI=http://localhost:3001/auth/google/callback
+      - GOOGLE_PROJECT_ID=dummy-project-id
+      - GOOGLE_TOPIC_NAME=dummy-topic-name
+      - GOOGLE_REFRESH_TOKEN=dummy-refresh-token
+      - CLASSIFIER_ENDPOINT=http://localhost:3002/classify
     depends_on:
       - db
+    networks:
+      - app-network
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
     environment:
       - NEXT_PUBLIC_API_URL=http://localhost:3001
     depends_on:
       - backend
+    networks:
+      - app-network
 
   db:
     image: postgres:15-alpine
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=109110
-      - POSTGRES_DB=email_organizer
     ports:
       - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=email_organizer
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
 ```
 
 ---
@@ -162,6 +238,9 @@ services:
 - Date range selector
 - Search bar
 
+**Screenshot:**
+![Task List](screenshots/task-list.png)
+
 ### Bulk Operations
 
 - **PATCH `/tasks/bulk`**
@@ -176,6 +255,9 @@ services:
     ```
   - **Optimistic UI:** Updates immediately, rolls back on 4xx/5xx errors.
 
+**Screenshot:**
+![Bulk Operations](screenshots/bulk-operations.png)
+
 ### Task Drawer & Re-label
 
 - **Clicking a row** opens a drawer with:
@@ -183,6 +265,9 @@ services:
   - Pretty-printed classification JSON.
   - **Re-label dropdown** (multi-select) with an **Apply** button.
   - **PATCH `/tasks/:id`** to update labels.
+
+**Screenshot:**
+![Task Drawer](screenshots/task-drawer.png)
 
 ### WebSocket Real-Time Updates
 
@@ -192,9 +277,7 @@ services:
   ```ts
   useWebSocket((message) => {
     if (message.type === "taskUpdate" && message.data.task) {
-      // update task in UI
     }
-    // ...handle other message types
   });
   ```
 - **Backend broadcast example:**
@@ -211,16 +294,63 @@ services:
   });
   ```
 
+**Screenshot:**
+![WebSocket](screenshots/websocket.png)
+
+### Exponential Backoff & Batch Mode
+
+- The backend implements exponential backoff and batch mode for calling the `/classify` endpoint (mock LLM):
+  - **Batch size:** Up to 8 messages per batch
+  - **Rate limit:** 50 requests per minute
+  - **Backoff:** If the rate limit is hit, the system waits and retries with increasing delay (up to 30 seconds)
+- **Why:** This ensures the backend never exceeds the LLM rate limit and handles spikes gracefully.
+- **Code Snippet:**
+  ```ts
+  class RateLimiter {
+    async waitForToken(): Promise<void> {
+      this.refillTokens();
+      let backoff = 1000;
+      while (this.tokens <= 0) {
+        await new Promise((resolve) => setTimeout(resolve, backoff));
+        this.refillTokens();
+        backoff = Math.min(backoff * 2, 30000);
+      }
+      this.tokens--;
+    }
+    // ...
+  }
+  // Usage in GmailWatcher:
+  await classifyRateLimiter.waitForToken();
+  ```
+- **Batching:**
+  ```ts
+  const batch = this.processingQueue.splice(0, this.batchSize); // batchSize = 8
+  await Promise.all(batch.map(...));
+  ```
+
+**Screenshot:**
+![Batch Mode](screenshots/batch-mode.png)
+
 ### Metrics
 
 - **GET `/metrics`**
   - Prometheus format metrics for monitoring.
+
+**Screenshot:**
+![Metrics](screenshots/metrics.png)
 
 ---
 
 ## Testing
 
 - **Unit tests:** Run with `npm test` in the backend folder.
+  - **Covers:**
+    - Task creation and retrieval
+    - Filtering by label and date
+    - Bulk update (done/archive)
+    - Relabeling tasks
+    - Uniqueness/idempotency (no duplicate tasks)
+    - Error handling (invalid IDs, not found, etc.)
 - **E2E test:** Validates the full flow from email ingestion to task triage.
 
 ---
@@ -238,7 +368,6 @@ services:
 
 ## Bonus Features
 
-- **Exponential backoff & batch mode** for LLM endpoint (≤8 messages per batch, 50 req/min limit).
 - **Idempotency:** No duplicate tasks on restarts.
 - **WebSocket:** Real-time UI updates.
 - **Prometheus metrics endpoint.**
@@ -247,16 +376,13 @@ services:
 
 ## Supported Features & Endpoints (Summary Table)
 
-| Feature           | Endpoint/Component            | Description                                              |
-| ----------------- | ----------------------------- | -------------------------------------------------------- |
-| Task List         | `GET /tasks`                  | Paginated, filterable, searchable list of triaged emails |
-| Bulk Actions      | `PATCH /tasks/bulk`           | Mark as done/archive multiple tasks, optimistic UI       |
-| Task Drawer       | Drawer UI, `PATCH /tasks/:id` | View details, re-label, pretty JSON, HTML preview        |
-| Filtering         | FilterBar component           | Multi-label, date range, search                          |
-| WebSocket Updates | WebSocket API                 | Real-time push of new/updated tasks                      |
-| Metrics           | `GET /metrics`                | Prometheus metrics                                       |
-| Authentication    | `POST /auth`                  | Connect your email account (OAuth)                       |
-
----
-
-**For any issues, please open an issue or contact the maintainer.**
+| Feature                          | Endpoint/Component               | Description                                               |
+| -------------------------------- | -------------------------------- | --------------------------------------------------------- |
+| Task List                        | `GET /tasks`                     | Paginated, filterable, searchable list of triaged emails  |
+| Bulk Actions                     | `PATCH /tasks/bulk`              | Mark as done/archive multiple tasks, optimistic UI        |
+| Task Drawer                      | Drawer UI, `PATCH /tasks/:id`    | View details, re-label, pretty JSON, HTML preview         |
+| Filtering & searching            | FilterBar component              | Multi-label, date range, search                           |
+| WebSocket Updates                | WebSocket API                    | Real-time push of new/updated tasks                       |
+| Exponential Backoff & Batch Mode | Backend GmailWatcher `/classify` | LLM endpoint batching and rate limiting (8/batch, 50/min) |
+| Metrics                          | `GET /metrics`                   | Prometheus metrics                                        |
+| Authentication                   | `POST /auth`                     | Connect your email account (OAuth)                        |
