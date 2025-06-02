@@ -244,7 +244,7 @@ services:
 - Search bar
 
 **Screenshot:**
-![Image](https://github.com/user-attachments/assets/fd83e9f3-d527-46c4-94ba-e9e5354b0456
+![Image](https://github.com/user-attachments/assets/fd83e9f3-d527-46c4-94ba-e9e5354b0456)
 
 ![Image](https://github.com/user-attachments/assets/c450ca84-eb6c-4bc6-a396-3f53625d8699)
 
