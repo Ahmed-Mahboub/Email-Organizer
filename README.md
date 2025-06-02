@@ -59,8 +59,8 @@ A full-stack TypeScript application for triaging and organizing emails, featurin
 1. **Clone the repository:**
 
    ```bash
-   git clone <your-repo-url>
-   cd <your-repo>
+   git clone https://github.com/Ahmed-Mahboub/Email-Organizer.git
+   cd Email-Organizer
    ```
 
 2. **Create environment files (see below).**
