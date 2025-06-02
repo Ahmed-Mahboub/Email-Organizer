@@ -131,7 +131,7 @@ To connect your email account, use the `/auth` endpoint:
 POST /auth/google
 Content-Type: application/json
 
-{"authUrl":"https://accounts.google.com/o/oauth2/v2/auth?some_thing}
+{"authUrl":"https://accounts.google.com/o/oauth2/v2/auth?some_thing"}
 ```
 
 then go to the `authUrl` and login this will lead to response with refresh token use it in the .env file
