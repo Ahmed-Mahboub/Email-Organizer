@@ -102,12 +102,14 @@ export function TaskDrawer({ task, onClose, onUpdate }: TaskDrawerProps) {
 
           <div>
             <h3 className="font-medium mb-2">Email Body</h3>
-            <div
-              className="prose max-w-none p-4 bg-gray-50 rounded"
-              dangerouslySetInnerHTML={{
-                __html: DOMPurify.sanitize(task.body),
-              }}
-            />
+            <div className="bg-gray-50 p-4 rounded overflow-auto">
+              <div
+                className="prose max-w-none p-4 bg-gray-50 rounded"
+                dangerouslySetInnerHTML={{
+                  __html: DOMPurify.sanitize(task.body),
+                }}
+              />
+            </div>
           </div>
 
           <div>

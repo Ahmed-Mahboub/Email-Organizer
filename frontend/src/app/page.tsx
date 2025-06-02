@@ -146,8 +146,9 @@ export default function HomePage() {
       if (filters.startDate)
         searchParams.append("startDate", filters.startDate);
       if (filters.endDate) searchParams.append("endDate", filters.endDate);
-      searchParams.append("skip", String((page - 1) * PAGE_SIZE));
-      searchParams.append("take", String(PAGE_SIZE));
+      searchParams.append("page", String(page));
+      searchParams.append("pageSize", String(PAGE_SIZE));
+
       try {
         const response = await fetch(
           `${process.env.NEXT_PUBLIC_API_URL}/tasks?${searchParams}`
@@ -156,9 +157,9 @@ export default function HomePage() {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         const data = await response.json();
-        setTasks(data.tasks || data);
-        setFilteredTasks(data.tasks || data);
-        setTotal(data.total || data.length || 0);
+        setTasks(data.tasks);
+        setFilteredTasks(data.tasks);
+        setTotal(data.total);
       } catch (err) {
         console.error("Error fetching tasks:", err);
         message.error("Failed to fetch tasks");
@@ -186,6 +187,8 @@ export default function HomePage() {
   }, [filters.search, tasks]);
 
   useWebSocket((message) => {
+    if (!message || !message.type || !message.data) return;
+
     if (message.type === "taskUpdate" && message.data.task) {
       setTasks((prevTasks) =>
         prevTasks.map((task) =>
@@ -201,9 +204,14 @@ export default function HomePage() {
       );
     } else if (message.type === "newTasks" && message.data.tasks) {
       setTasks((prevTasks) => {
-        const newTasks = [...message.data.tasks!, ...prevTasks];
-        return newTasks.slice(0, 20);
+        // Filter out any tasks that already exist
+        const existingIds = new Set(prevTasks.map((t) => t.id));
+        const newTasks = message.data.tasks!.filter(
+          (t) => !existingIds.has(t.id)
+        );
+        return [...newTasks, ...prevTasks];
       });
+      setTotal((prev) => prev + message.data.tasks!.length);
     }
   });
 
@@ -382,7 +390,9 @@ export default function HomePage() {
               current: page,
               pageSize: PAGE_SIZE,
               total: total,
-              onChange: setPage,
+              onChange: (newPage) => setPage(newPage),
+              showSizeChanger: false,
+              showTotal: (total) => `Total ${total} items`,
             }}
             onRow={(record) => ({
               onClick: () => handleTaskClick(record),
