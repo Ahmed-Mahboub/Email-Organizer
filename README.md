@@ -244,10 +244,14 @@ services:
 - Search bar
 
 **Screenshot:**
+
+- Search bar
 ![Image](https://github.com/user-attachments/assets/fd83e9f3-d527-46c4-94ba-e9e5354b0456)
 
+- Multi-select label filter (chip style)
 ![Image](https://github.com/user-attachments/assets/c450ca84-eb6c-4bc6-a396-3f53625d8699)
 
+- Date range selector
 ![Image](https://github.com/user-attachments/assets/6a12019d-fa12-4e24-9478-2f1aad787eb1)
 
 ### Bulk Operations
