@@ -1,21 +1,25 @@
-import { useState } from "react";
+import { Drawer, Space, Tag, Select, message } from "antd";
 import { Task } from "@/types";
-import { format } from "date-fns";
+import dayjs from "dayjs";
 import DOMPurify from "dompurify";
 
 interface TaskDrawerProps {
-  task: Task;
+  task: Task | null;
+  allTasks: Task[];
   onClose: () => void;
-  onUpdate: (task: Task) => void;
+  onTaskUpdate: (updatedTask: Task) => void;
 }
 
-export function TaskDrawer({ task, onClose, onUpdate }: TaskDrawerProps) {
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [selectedLabels, setSelectedLabels] = useState<string[]>(task.labels);
+export function TaskDrawer({
+  task,
+  allTasks,
+  onClose,
+  onTaskUpdate,
+}: TaskDrawerProps) {
+  if (!task) return null;
 
-  const handleUpdateLabels = async () => {
+  const handleLabelUpdate = async (newLabels: string[]) => {
     try {
-      setIsUpdating(true);
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_API_URL}/tasks/${task.id}`,
         {
@@ -24,110 +28,84 @@ export function TaskDrawer({ task, onClose, onUpdate }: TaskDrawerProps) {
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
-            labels: selectedLabels,
+            labels: newLabels,
           }),
         }
       );
-
-      if (response.ok) {
-        const updatedTask = await response.json();
-        onUpdate(updatedTask);
-      }
+      if (!response.ok) throw new Error("Failed to update labels");
+      const updatedTask = await response.json();
+      onTaskUpdate(updatedTask);
+      message.success("Labels updated successfully");
     } catch (error) {
-      console.error("Error updating task:", error);
-    } finally {
-      setIsUpdating(false);
+      message.error("Failed to update labels");
+      console.error("Failed to update labels:", error);
     }
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-end">
-      <div className="w-full max-w-md bg-white h-full">
-        <div className="p-4 border-b flex justify-between items-center">
-          <h2 className="text-lg font-semibold">Task Details</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-gray-700"
-          >
-            ✕
-          </button>
+    <Drawer
+      title="Task Details"
+      placement="right"
+      onClose={onClose}
+      open={!!task}
+      width={600}
+    >
+      <div>
+        <h2>{task.subject}</h2>
+        <p>From: {task.from}</p>
+        <p>Received: {dayjs(task.receivedAt).format("YYYY-MM-DD HH:mm")}</p>
+        <div>
+          <h3>Labels:</h3>
+          <Space wrap>
+            {task.labels.map((label) => (
+              <Tag key={label} color="blue">
+                {label}
+              </Tag>
+            ))}
+          </Space>
+          <div className="mt-2">
+            <Space direction="vertical" style={{ width: "100%" }}>
+              <Select
+                mode="multiple"
+                placeholder="Re-label"
+                style={{ width: "100%" }}
+                value={task.labels}
+                onChange={handleLabelUpdate}
+              >
+                {Array.from(new Set(allTasks.flatMap((t) => t.labels))).map(
+                  (label) => (
+                    <Select.Option key={label} value={label}>
+                      {label}
+                    </Select.Option>
+                  )
+                )}
+              </Select>
+            </Space>
+          </div>
         </div>
-
-        <div className="p-4 space-y-6">
-          <div>
-            <h3 className="font-medium mb-2">Subject</h3>
-            <p>{task.subject}</p>
-          </div>
-
-          <div>
-            <h3 className="font-medium mb-2">From</h3>
-            <p>{task.from}</p>
-          </div>
-
-          <div>
-            <h3 className="font-medium mb-2">Received</h3>
-            <p>{format(new Date(task.receivedAt), "PPpp")}</p>
-          </div>
-
-          <div>
-            <h3 className="font-medium mb-2">Labels</h3>
-            <div className="flex flex-wrap gap-2">
-              {selectedLabels.map((label) => (
-                <span
-                  key={label}
-                  className="px-3 py-1 rounded-full bg-blue-100 text-blue-800 text-sm"
-                >
-                  {label}
-                  <button
-                    onClick={() =>
-                      setSelectedLabels((labels) =>
-                        labels.filter((l) => l !== label)
-                      )
-                    }
-                    className="ml-2 text-blue-600 hover:text-blue-800"
-                  >
-                    ✕
-                  </button>
-                </span>
-              ))}
-            </div>
-            <button
-              onClick={handleUpdateLabels}
-              disabled={isUpdating}
-              className="mt-2 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:opacity-50"
-            >
-              {isUpdating ? "Updating..." : "Update Labels"}
-            </button>
-          </div>
-
-          <div>
-            <h3 className="font-medium mb-2">Email Body</h3>
-            <div className="bg-gray-50 p-4 rounded overflow-auto">
-              <div
-                className="prose max-w-none p-4 bg-gray-50 rounded"
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(task.body),
-                }}
-              />
-            </div>
-          </div>
-
-          <div>
-            <h3 className="font-medium mb-2">Classification</h3>
-            <pre className="bg-gray-50 p-4 rounded overflow-auto">
-              {JSON.stringify(
-                {
-                  taskType: task.taskType,
-                  labels: task.labels,
-                  confidence: task.confidence,
-                },
-                null,
-                2
-              )}
-            </pre>
-          </div>
+        <div className="mt-4">
+          <h3>Content:</h3>
+          <div
+            dangerouslySetInnerHTML={{
+              __html: DOMPurify.sanitize(task.body),
+            }}
+          />
+        </div>
+        <div className="mt-4">
+          <h3>Classification:</h3>
+          <pre className="bg-gray-100 p-4 rounded">
+            {JSON.stringify(
+              {
+                taskType: task.taskType,
+                labels: task.labels,
+                confidence: task.confidence,
+              },
+              null,
+              2
+            )}
+          </pre>
         </div>
       </div>
-    </div>
+    </Drawer>
   );
 }

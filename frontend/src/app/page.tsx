@@ -1,33 +1,13 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  Table,
-  Card,
-  Space,
-  Button,
-  Tag,
-  Drawer,
-  DatePicker,
-  Select,
-  Input,
-  message,
-  // Checkbox,
-  Tooltip,
-} from "antd";
-import {
-  CheckOutlined,
-  DeleteOutlined,
-  MailOutlined,
-  CheckCircleOutlined,
-  InboxOutlined,
-} from "@ant-design/icons";
+import { Card, Space, Button, message } from "antd";
+import { CheckOutlined, DeleteOutlined } from "@ant-design/icons";
 import { Task } from "@/types";
 import { useWebSocket } from "@/hooks/useWebSocket";
-import dayjs from "dayjs";
-import DOMPurify from "dompurify";
-
-const { Search } = Input;
+import { TaskTable } from "@/components/TaskTable";
+import { TaskDrawer } from "@/components/TaskDrawer";
+import { FilterBar } from "@/components/FilterBar";
 
 const PAGE_SIZE = 50;
 
@@ -45,96 +25,6 @@ export default function HomePage() {
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [loading, setLoading] = useState(false);
-
-  const columns = [
-    // {
-    //   title: "Select",
-    //   key: "select",
-    //   width: 50,
-    //   render: (_: unknown, record: Task) => (
-    //     <Checkbox
-    //       checked={selectedRowKeys.includes(record.id)}
-    //       onChange={(e) => {
-    //         if (e.target.checked) {
-    //           setSelectedRowKeys([...selectedRowKeys, record.id]);
-    //         } else {
-    //           setSelectedRowKeys(
-    //             selectedRowKeys.filter((id) => id !== record.id)
-    //           );
-    //         }
-    //       }}
-    //       onClick={(e) => e.stopPropagation()}
-    //     />
-    //   ),
-    // },
-    {
-      title: "Subject",
-      dataIndex: "subject",
-      key: "subject",
-      render: (text: string) => (
-        <Space>
-          <MailOutlined />
-          {text}
-        </Space>
-      ),
-    },
-    {
-      title: "From",
-      dataIndex: "from",
-      key: "from",
-    },
-    {
-      title: "Labels",
-      dataIndex: "labels",
-      key: "labels",
-      render: (labels: string[]) => (
-        <Space>
-          {labels.map((label) => (
-            <Tag key={label} color="blue">
-              {label}
-            </Tag>
-          ))}
-        </Space>
-      ),
-    },
-    {
-      title: "Confidence",
-      dataIndex: "confidence",
-      key: "confidence",
-      render: (confidence: number) => `${(confidence * 100).toFixed(1)}%`,
-    },
-    {
-      title: "Received",
-      dataIndex: "receivedAt",
-      key: "receivedAt",
-      render: (date: string) => dayjs(date).format("YYYY-MM-DD HH:mm"),
-    },
-    {
-      title: "Status",
-      key: "status",
-      width: 100,
-      render: (_: unknown, record: Task) => (
-        <Space>
-          <Tooltip title={record.isDone ? "Done" : "Not Done"}>
-            <CheckCircleOutlined
-              style={{
-                color: record.isDone ? "#52c41a" : "#d9d9d9",
-                fontSize: "16px",
-              }}
-            />
-          </Tooltip>
-          <Tooltip title={record.isArchived ? "Archived" : "Not Archived"}>
-            <InboxOutlined
-              style={{
-                color: record.isArchived ? "#ff4d4f" : "#d9d9d9",
-                fontSize: "16px",
-              }}
-            />
-          </Tooltip>
-        </Space>
-      ),
-    },
-  ];
 
   useEffect(() => {
     const fetchTasks = async () => {
@@ -170,7 +60,6 @@ export default function HomePage() {
     fetchTasks();
   }, [filters.labels, filters.startDate, filters.endDate, page]);
 
-  // Client-side search
   useEffect(() => {
     if (!filters.search) {
       setFilteredTasks(tasks);
@@ -204,7 +93,6 @@ export default function HomePage() {
       );
     } else if (message.type === "newTasks" && message.data.tasks) {
       setTasks((prevTasks) => {
-        // Filter out any tasks that already exist
         const existingIds = new Set(prevTasks.map((t) => t.id));
         const newTasks = message.data.tasks!.filter(
           (t) => !existingIds.has(t.id)
@@ -232,19 +120,16 @@ export default function HomePage() {
     taskIds: string[],
     action: "done" | "archive"
   ) => {
-    // Store previous state for rollback
     const prevTasks = [...tasks];
     const prevSelectedKeys = [...selectedRowKeys];
     const actionText = action === "done" ? "marked as done" : "archived";
     const loadingKey = "bulkAction";
 
-    // Optimistic update
     message.loading({
       content: `Processing ${taskIds.length} tasks...`,
       key: loadingKey,
     });
 
-    // Update UI immediately
     setTasks(
       tasks.map((task) =>
         taskIds.includes(task.id)
@@ -274,24 +159,8 @@ export default function HomePage() {
       );
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(
-          errorData.message || `HTTP error! status: ${response.status}`
-        );
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
-
-      const responseData = await response.json();
-      const updatedTasks = Array.isArray(responseData)
-        ? responseData
-        : responseData.tasks || [];
-
-      // Update with server response
-      setTasks((prevTasks) =>
-        prevTasks.map((task) => {
-          const updatedTask = updatedTasks.find((t: Task) => t.id === task.id);
-          return updatedTask || task;
-        })
-      );
 
       message.success({
         content: `${taskIds.length} tasks ${actionText}`,
@@ -299,7 +168,6 @@ export default function HomePage() {
       });
       setSelectedRowKeys([]);
     } catch (error) {
-      // Rollback on error
       setTasks(prevTasks);
       setSelectedRowKeys(prevSelectedKeys);
       message.error({
@@ -315,52 +183,11 @@ export default function HomePage() {
     <main className="container mx-auto p-4">
       <Card title="Email Tasks" className="mb-4">
         <Space direction="vertical" size="middle" style={{ width: "100%" }}>
-          <Space wrap>
-            <Space>
-              <DatePicker
-                placeholder="Start Date"
-                onChange={(date) => {
-                  handleFilterChange({
-                    ...filters,
-                    startDate: date?.toISOString() || "",
-                  });
-                }}
-              />
-              <DatePicker
-                placeholder="End Date"
-                onChange={(date) => {
-                  handleFilterChange({
-                    ...filters,
-                    endDate: date?.toISOString() || "",
-                  });
-                }}
-              />
-            </Space>
-            <Select
-              mode="multiple"
-              placeholder="Select labels"
-              style={{ width: 200 }}
-              onChange={(values) =>
-                handleFilterChange({ ...filters, labels: values })
-              }
-            >
-              {Array.from(new Set(tasks.flatMap((t) => t.labels))).map(
-                (label) => (
-                  <Select.Option key={label} value={label}>
-                    {label}
-                  </Select.Option>
-                )
-              )}
-            </Select>
-            <Search
-              placeholder="Search tasks"
-              allowClear
-              onChange={(e) =>
-                handleFilterChange({ ...filters, search: e.target.value })
-              }
-              style={{ width: 200 }}
-            />
-          </Space>
+          <FilterBar
+            tasks={tasks}
+            filters={filters}
+            onFilterChange={handleFilterChange}
+          />
 
           {selectedRowKeys.length > 0 && (
             <Space>
@@ -381,135 +208,32 @@ export default function HomePage() {
             </Space>
           )}
 
-          <Table
-            columns={columns}
-            dataSource={filteredTasks}
-            rowKey="id"
+          <TaskTable
+            tasks={filteredTasks}
             loading={loading}
-            pagination={{
-              current: page,
-              pageSize: PAGE_SIZE,
-              total: total,
-              onChange: (newPage) => setPage(newPage),
-              showSizeChanger: false,
-              showTotal: (total) => `Total ${total} items`,
-            }}
-            onRow={(record) => ({
-              onClick: () => handleTaskClick(record),
-            })}
-            rowSelection={{
-              selectedRowKeys,
-              onChange: (keys) => setSelectedRowKeys(keys as string[]),
-            }}
+            page={page}
+            total={total}
+            selectedRowKeys={selectedRowKeys}
+            onPageChange={setPage}
+            onTaskClick={handleTaskClick}
+            onSelectionChange={setSelectedRowKeys}
           />
         </Space>
       </Card>
 
-      <Drawer
-        title="Task Details"
-        placement="right"
+      <TaskDrawer
+        task={selectedTask}
+        allTasks={tasks}
         onClose={handleCloseDrawer}
-        open={!!selectedTask}
-        width={600}
-      >
-        {selectedTask && (
-          <div>
-            <h2>{selectedTask.subject}</h2>
-            <p>From: {selectedTask.from}</p>
-            <p>
-              Received:{" "}
-              {dayjs(selectedTask.receivedAt).format("YYYY-MM-DD HH:mm")}
-            </p>
-            <div>
-              <h3>Labels:</h3>
-              <Space wrap>
-                {selectedTask.labels.map((label) => (
-                  <Tag key={label} color="blue">
-                    {label}
-                  </Tag>
-                ))}
-              </Space>
-              <div className="mt-2">
-                <Space direction="vertical" style={{ width: "100%" }}>
-                  <Select
-                    mode="multiple"
-                    placeholder="Re-label"
-                    style={{ width: "100%" }}
-                    value={selectedTask.labels}
-                    onChange={(newLabels) => {
-                      setSelectedTask({ ...selectedTask, labels: newLabels });
-                    }}
-                  >
-                    {Array.from(new Set(tasks.flatMap((t) => t.labels))).map(
-                      (label) => (
-                        <Select.Option key={label} value={label}>
-                          {label}
-                        </Select.Option>
-                      )
-                    )}
-                  </Select>
-                  <Button
-                    type="primary"
-                    onClick={async () => {
-                      try {
-                        const response = await fetch(
-                          `${process.env.NEXT_PUBLIC_API_URL}/tasks/${selectedTask.id}`,
-                          {
-                            method: "PATCH",
-                            headers: {
-                              "Content-Type": "application/json",
-                            },
-                            body: JSON.stringify({
-                              labels: selectedTask.labels,
-                            }),
-                          }
-                        );
-                        if (!response.ok)
-                          throw new Error("Failed to update labels");
-                        const updatedTask = await response.json();
-                        setTasks((prevTasks) =>
-                          prevTasks.map((task) =>
-                            task.id === selectedTask.id ? updatedTask : task
-                          )
-                        );
-                        setSelectedTask(updatedTask);
-                        message.success("Labels updated successfully");
-                      } catch (error) {
-                        message.error("Failed to update labels");
-                        console.error("Failed to update labels:", error);
-                      }
-                    }}
-                  >
-                    Apply Labels
-                  </Button>
-                </Space>
-              </div>
-            </div>
-            <div className="mt-4">
-              <h3>Content:</h3>
-              <div
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurify.sanitize(selectedTask.body),
-                }}
-              />
-            </div>
-            <div className="mt-4">
-              <h3>Classification:</h3>
-              <pre className="bg-gray-100 p-4 rounded">
-                {JSON.stringify(
-                  {
-                    taskType: selectedTask.taskType,
-                    labels: selectedTask.labels,
-                    confidence: selectedTask.confidence,
-                  },
-                  null,
-                  2
-                )}
-              </pre>
-            </div>
-          </div>
-        )}
-      </Drawer>
+        onTaskUpdate={(updatedTask) => {
+          setTasks((prevTasks) =>
+            prevTasks.map((task) =>
+              task.id === updatedTask.id ? updatedTask : task
+            )
+          );
+          setSelectedTask(updatedTask);
+        }}
+      />
     </main>
   );
 }
