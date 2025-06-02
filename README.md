@@ -1,7 +1,7 @@
 <div align="center">
 <a href="https://github.com/Ahmed-Mahboub/Email-Organizer" rel="noopener">
   
-  <img width="700" alt="Logo With Title (7)" src="./emai_orgainzer_photo.png">
+  <img width="700" alt="Logo With Title (7)" src="./emai_orgainzer.png">
 
 </div>
 
