@@ -43,12 +43,15 @@ const wss = new WebSocketServer({
 export const broadcastUpdate = (data: any) => {
   wss.clients.forEach((client) => {
     if (client.readyState === WebSocket.OPEN) {
-      client.send(
-        JSON.stringify({
-          type: "taskUpdate",
-          data,
-        })
-      );
+      // Ensure message has the correct format
+      const message = {
+        type: data.type || "taskUpdate",
+        data: {
+          task: data.task,
+          tasks: data.tasks,
+        },
+      };
+      client.send(JSON.stringify(message));
     }
   });
 };
@@ -103,7 +106,7 @@ async function startServer() {
     const count = await taskRepo.count();
 
     if (process.env.NODE_ENV !== "production") {
-      await seedEmails(AppDataSource, 80);
+      await seedEmails(AppDataSource, 10);
     }
 
     server.listen(port, () => {

@@ -2,7 +2,21 @@ import { DataSource } from "typeorm";
 import { Task } from "../../entities/Task";
 import { faker } from "@faker-js/faker";
 
-export async function seedEmails(dataSource: DataSource, count: number = 40) {
+const POSSIBLE_LABELS = [
+  "urgent",
+  "work",
+  "meeting",
+  "project",
+  "deadline",
+  "invoice",
+  "contract",
+  "hr",
+  "question",
+  "feedback",
+  "general",
+];
+
+export async function seedEmails(dataSource: DataSource, count: number = 10) {
   const taskRepository = dataSource.getRepository(Task);
 
   const emails = Array.from({ length: count }, () => {
@@ -12,51 +26,21 @@ export async function seedEmails(dataSource: DataSource, count: number = 40) {
     const body = faker.lorem.paragraphs(2);
     const date = faker.date.recent();
 
-    /**@Entity()
-export class Task {
-  @PrimaryGeneratedColumn("uuid")
-  id!: string;
+    // Randomly select 1-3 labels
+    const numLabels = faker.number.int({ min: 1, max: 3 });
+    const labels = faker.helpers.arrayElements(POSSIBLE_LABELS, numLabels);
+    const confidence = faker.number.float({
+      min: 0.5,
+      max: 0.95,
+      fractionDigits: 2,
+    });
 
-  @Column()
-  subject!: string;
-
-  @Column()
-  from!: string;
-
-  @Column("simple-array")
-  labels!: string[];
-
-  @Column("float")
-  confidence!: number;
-
-  @Column({ type: "text", nullable: true })
-  body?: string;
-
-  @Column({ default: false })
-  isDone!: boolean;
-
-  @Column({ default: false })
-  isArchived!: boolean;
-
-  @Column({ unique: true })
-  messageId!: string;
-
-  @CreateDateColumn()
-  receivedAt!: Date;
-
-  @CreateDateColumn()
-  createdAt!: Date;
-
-  @UpdateDateColumn()
-  updatedAt!: Date;
-}
- */
     return {
       messageId,
       subject,
       from,
-      labels: [],
-      confidence: 0,
+      labels,
+      confidence,
       body,
       isDone: false,
       isArchived: false,
