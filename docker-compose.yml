@@ -1,40 +1,62 @@
-services:
-  db:
-    image: postgres:15
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: 109110
-      POSTGRES_DB: email_organizer
-    ports:
-      - "5432:5432"
-    volumes:
-      - pgdata:/var/lib/postgresql/data
+version: "3.8"
 
+services:
   backend:
-    build: ./backend
-    environment:
-      DATABASE_TYPE: postgres
-      DATABASE_HOST: db
-      DATABASE_PORT: 5432
-      DATABASE_USER: postgres
-      DATABASE_PASSWORD: 109110
-      DATABASE_NAME: email_organizer
-      PORT: 3001
-      NODE_ENV: production
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
     ports:
       - "3001:3001"
+    environment:
+      - NODE_ENV=production
+      - DATABASE_TYPE=postgres
+      - DATABASE_HOST=db
+      - DATABASE_PORT=5432
+      - DATABASE_USER=postgres
+      - DATABASE_PASSWORD=password
+      - DATABASE_NAME=email_organizer
+      - PORT=3001
+      - GOOGLE_CLIENT_ID=dummy-client-id.apps.googleusercontent.com
+      - GOOGLE_CLIENT_SECRET=dummy-client-secret
+      - GOOGLE_REDIRECT_URI=http://localhost:3001/auth/google/callback
+      - GOOGLE_PROJECT_ID=dummy-project-id
+      - GOOGLE_TOPIC_NAME=dummy-topic-name
+      - GOOGLE_REFRESH_TOKEN=dummy-refresh-token
+      - CLASSIFIER_ENDPOINT=http://localhost:3002/classify
     depends_on:
       - db
+    networks:
+      - app-network
 
   frontend:
-    build: ./frontend
-    environment:
-      NODE_ENV: production
-      # Add any other frontend env vars here if needed
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
     ports:
       - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_API_URL=http://localhost:3001
     depends_on:
       - backend
+    networks:
+      - app-network
+
+  db:
+    image: postgres:15-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=email_organizer
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
-  pgdata: {}
+  postgres_data: {}
