@@ -384,8 +384,6 @@ services:
 ---
 
 ## Bonus Features
-
-- **Idempotency:** No duplicate tasks on restarts.
 - **WebSocket:** Real-time UI updates.
 - **Prometheus metrics endpoint.**
 
