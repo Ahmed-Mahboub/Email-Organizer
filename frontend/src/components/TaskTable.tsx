@@ -116,6 +116,7 @@ export function TaskTable({
       }}
       onRow={(record) => ({
         onClick: () => onTaskClick(record),
+        style: { cursor: "pointer" },
       })}
       rowSelection={{
         selectedRowKeys,
