@@ -244,7 +244,11 @@ services:
 - Search bar
 
 **Screenshot:**
-![Task List](screenshots/task-list.png)
+![Image](https://github.com/user-attachments/assets/fd83e9f3-d527-46c4-94ba-e9e5354b0456
+
+![Image](https://github.com/user-attachments/assets/c450ca84-eb6c-4bc6-a396-3f53625d8699)
+
+![Image](https://github.com/user-attachments/assets/6a12019d-fa12-4e24-9478-2f1aad787eb1)
 
 ### Bulk Operations
 
@@ -261,7 +265,9 @@ services:
   - **Optimistic UI:** Updates immediately, rolls back on 4xx/5xx errors.
 
 **Screenshot:**
-![Bulk Operations](screenshots/bulk-operations.png)
+![Image](https://github.com/user-attachments/assets/be5e67f7-5739-497a-a052-9e9b9d5bee62)
+
+![Image](https://github.com/user-attachments/assets/f6ed88b3-02f9-4268-9b47-de1c231d60b6)
 
 ### Task Drawer & Re-label
 
@@ -272,7 +278,7 @@ services:
   - **PATCH `/tasks/:id`** to update labels.
 
 **Screenshot:**
-![Task Drawer](screenshots/task-drawer.png)
+![Image](https://github.com/user-attachments/assets/62358fe8-3967-43bb-8318-e6adcab001e1)
 
 ### WebSocket Real-Time Updates
 
@@ -298,9 +304,6 @@ services:
     }
   });
   ```
-
-**Screenshot:**
-![WebSocket](screenshots/websocket.png)
 
 ### Exponential Backoff & Batch Mode
 
@@ -333,16 +336,13 @@ services:
   await Promise.all(batch.map(...));
   ```
 
-**Screenshot:**
-![Batch Mode](screenshots/batch-mode.png)
-
 ### Metrics
 
 - **GET `/metrics`**
   - Prometheus format metrics for monitoring.
 
 **Screenshot:**
-![Metrics](screenshots/metrics.png)
+![Image](https://github.com/user-attachments/assets/cd852ea5-2f61-4f05-a3d9-22892aa07f2a)
 
 ---
 
@@ -357,17 +357,6 @@ services:
     - Uniqueness/idempotency (no duplicate tasks)
     - Error handling (invalid IDs, not found, etc.)
 - **E2E test:** Validates the full flow from email ingestion to task triage.
-
----
-
-## Screenshots
-
-> _You can add screenshots here for:_
->
-> - Bulk operation selection and actions
-> - Search/filter bar
-> - Task drawer with HTML preview and classification
-> - Pagination controls
 
 ---
 
